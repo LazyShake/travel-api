@@ -1,40 +1,37 @@
-# Используем PHP с FPM
 FROM php:8.2-fpm
 
-# Устанавливаем системные пакеты и PHP-расширения
+# Установка зависимостей
 RUN apt-get update && apt-get install -y \
-    git \
-    curl \
+    build-essential \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    libonig-dev \
+    libxml2-dev \
     zip \
     unzip \
+    curl \
+    git \
     libpq-dev \
-    libzip-dev \
-    libonig-dev \
-    && docker-php-ext-install pdo pdo_pgsql mbstring zip
+    && docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath gd
 
 # Установка Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Установка рабочей директории
+# Копируем проект в контейнер
 WORKDIR /var/www
 
-# Копируем всё (включая .env)
 COPY . .
 
-# Установка зависимостей Laravel
-RUN composer install --no-interaction --optimize-autoloader
+# Установка зависимостей
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader
 
-# Генерация ключа приложения
-RUN php artisan key:generate
+# Кэширование конфигов
+RUN php artisan config:cache && php artisan route:cache
 
-# Даем права на storage и bootstrap/cache
-RUN chmod -R 775 storage bootstrap/cache
+# Права
+RUN chown -R www-data:www-data /var/www && chmod -R 755 /var/www/storage
 
-# (опционально) Кэшируем конфиги и маршруты
-# RUN php artisan config:cache && php artisan route:cache
-
-# Открываем порт (если нужно для fpm, не всегда нужен)
 EXPOSE 9000
 
-# Запускаем php-fpm
 CMD ["php-fpm"]

@@ -1,40 +1,42 @@
-version: '3.8'
-
 services:
   app:
     build:
       context: .
-      dockerfile: docker/php/Dockerfile
-    container_name: travel-api-app
-    working_dir: /var/www
+    container_name: travel-api
+    ports:
+      - "9000:9000"
     volumes:
       - .:/var/www
     depends_on:
       - db
-
-  nginx:
-    image: nginx:alpine
-    container_name: travel-api-nginx
-    ports:
-      - "8000:80"
-    volumes:
-      - .:/var/www
-      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
-    depends_on:
-      - app
+    environment:
+      - APP_ENV=local
+      - DB_CONNECTION=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DATABASE=travel
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=xawdfthbxawdfth2
+    networks:
+      - travelnet
+    command: php artisan serve --host=0.0.0.0 --port=9000
 
   db:
     image: postgres:15
-    container_name: travel-api-db
-    restart: unless-stopped
+    container_name: travel-db
     environment:
       POSTGRES_DB: travel
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-    ports:
-      - "5432:5432"
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: xawdfthbxawdfth2
     volumes:
       - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - travelnet
+
+networks:
+  travelnet:
 
 volumes:
   pgdata:
