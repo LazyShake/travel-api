@@ -12,5 +12,5 @@ Route::post('/places', [PlaceController::class, 'store']);
 Route::get('/users', [UserController::class, 'index']);
 Route::post('/users', [UserController::class, 'store']);
 
-Route::post('/users/{id}/favorites', [UserController::class, 'addFavorite']);
-Route::get('/users/{id}/favorites', [UserController::class, 'favorites']);
+Route::post('/users/{id}/wishlist', [UserController::class, 'store']);
+Route::get('/users/{id}/wishlist', [UserController::class, 'index']);
